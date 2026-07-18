@@ -68,9 +68,44 @@ async function getLogin(req, res) {
   })
 }
 
-function getMessage(req, res) {
+function getMe(req, res) {
+    
     return res.status(200).json({
         verified: true
     });
 }
-export { getSignup, getLogin, getMessage };
+async function getConversations(req, res) {
+    const conversations = await prisma.conversationMember.findMany({
+        where: { userId: req.user.id },
+        include: {
+            conversation: {
+                include: {
+                    messages: true,
+                }
+            }
+        }
+    })
+
+    return res.json(conversations);
+}
+async function getConversation(req, res) {
+    const conversationId = Number(req.params.conversationId);
+    const conversation = await prisma.conversation.findUnique({
+        where: { id: conversationId }, 
+        include: {
+            messages: {
+                include: {
+                    author: true
+                }
+            }
+        }
+    });
+    if (!conversation) {
+    return res.status(404).json({
+        message: "Conversation not found",
+    });
+};
+    console.log(conversation)
+    return res.json(conversation)
+}
+export { getSignup, getLogin, getMe, getConversations, getConversation };

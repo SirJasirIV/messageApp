@@ -15,5 +15,8 @@
     "start": "node app.js",
     "dev": "nodemon app.js"
   },
-  "type": "module"
+  "type": "module",
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
 }

@@ -21,6 +21,7 @@ model User {
   createdAt DateTime  @default(now())
 
   messages  Message[]
+  memberOf ConversationMember[]
 }
 
 model Message {
@@ -30,4 +31,22 @@ model Message {
 
   authorId  Int
   author    User     @relation(fields: [authorId], references: [id])
+  conversationId  Int
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+}
+
+model Conversation {
+  id       Int       @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  messages Message[]
+  participants ConversationMember[]
+}
+
+model ConversationMember {
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  conversationId Int
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+  joinedAt DateTime @default(now())
+  @@id([userId, conversationId])
 }
