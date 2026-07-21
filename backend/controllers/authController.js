@@ -108,4 +108,19 @@ async function getConversation(req, res) {
     console.log(conversation)
     return res.json(conversation)
 }
-export { getSignup, getLogin, getMe, getConversations, getConversation };
+
+async function sendMessage(req, res) {
+        if (!req.body.text?.trim()) {
+    return res.status(400).json({
+        message: "Message cannot be empty"
+    })};
+    const newMessage = await prisma.message.create({
+       data: { text: req.body.text,
+        authorId: req.user.id,
+        conversationId: Number(req.params.conversationId)
+       }
+    })
+
+    return res.status(201).json(newMessage);
+}
+export { getSignup, getLogin, getMe, getConversations, getConversation, sendMessage };

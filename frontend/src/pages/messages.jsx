@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 
 function Messages() {
     const [ conversation, setConversation ] = useState(null);
+    const [textMessage, setTextMessage] = useState("");
     const { conversationId } = useParams();
-    useEffect(() => {
+
         async function getMessage() {
             const token = localStorage.getItem("token");
             const response = await fetch(`http://localhost:3000/auth/conversations/${conversationId}`, {
@@ -15,14 +16,36 @@ function Messages() {
    const data = await response.json();
    console.log(data);
    setConversation(data);
-    }
+}
+  useEffect(() => {
     getMessage();
-    }, []);
-  
+}, [conversationId]);
+
     console.log(conversationId);
     if (!conversation) {
     return <h1>Loading...</h1>;
 }
+    async function sendMessage(e) {
+        e.preventDefault();
+        const token = localStorage.getItem("token");
+        const response = await fetch(`http://localhost:3000/auth/conversations/${conversationId}/messages`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            }, 
+            body: JSON.stringify({
+            text: textMessage
+            })
+        })
+        if (response.ok) {
+       setTextMessage("");
+       await getMessage();
+    }
+        const data = await response.json();
+        console.log(data);
+        await getMessage();
+    }
     return (
     <>
     <h1>Conversation {conversationId}</h1>
@@ -32,7 +55,10 @@ function Messages() {
      <p>{message.text}</p>
     </div>
     ))}
-    
+    <form onSubmit={sendMessage}>
+    <input type="text" name="message" placeholder="send something" value={textMessage} onChange={(e) => setTextMessage(e.target.value)}/>
+    <button type="submit">Send</button>
+    </form>
     </>
     )
 }
