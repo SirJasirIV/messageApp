@@ -100,6 +100,17 @@ async function getConversation(req, res) {
             }
         }
     });
+    const checkUser = await prisma.conversationMember.findUnique({
+        where: { userId_conversationId: {
+            userId: req.user.id,
+            conversationId: Number(req.params.conversationId)
+         } }
+        });
+    if (!checkUser) {
+      return res.status(401).json({
+        message: "Access to conversation denied"
+      })
+    }
     if (!conversation) {
     return res.status(404).json({
         message: "Conversation not found",
