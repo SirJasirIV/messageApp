@@ -41,6 +41,7 @@ model Conversation {
   messages Message[]
   participants ConversationMember[]
   isGroup      Boolean  @default(false)
+  name      String?
 }
 
 model ConversationMember {

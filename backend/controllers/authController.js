@@ -121,6 +121,17 @@ async function getConversation(req, res) {
 }
 
 async function sendMessage(req, res) {
+    const checkUser = await prisma.conversationMember.findUnique({
+        where: { userId_conversationId: {
+            userId: req.user.id,
+            conversationId: Number(req.params.conversationId)
+         } }
+        });
+    if (!checkUser) {
+      return res.status(401).json({
+        message: "Access to conversation denied"
+      })
+    }
         if (!req.body.text?.trim()) {
     return res.status(400).json({
         message: "Message cannot be empty"
@@ -151,7 +162,7 @@ async function getUser(req, res) {
       },
       {
         name: {
-          contains: req.query.search,
+          contains: searchedUser,
           mode: "insensitive",
         },
       },
@@ -167,6 +178,42 @@ return res.json(users);
 };
 
 async function createConversation(req, res) {
+    if (req.body.isGroup) {
+                if (!req.body.groupName?.trim()) {
+      return res.status(400).json({
+        message: "No group name"
+      })
+}
+
+if (!Array.isArray(req.body.memberIds) || req.body.memberIds.length === 0) {
+    return res.status(400).json({
+        message: "No members"
+    })}
+       const createdGroup = await prisma.conversation.create({
+        data: {
+            name: req.body.groupName,
+            isGroup: true
+        }
+       });
+       await prisma.conversationMember.create({
+        data: {
+            userId: req.user.id,
+            conversationId: createdGroup.id
+        }})
+        for (const memberId of req.body.memberIds) {
+          await prisma.conversationMember.create({
+            data: {
+                userId: memberId,
+                conversationId: createdGroup.id
+            }
+          })
+        }
+
+
+       return res.status(201).json(createdGroup);
+    } else {
+
+    
        const existingConversation = await prisma.conversation.findFirst({
         where: {
             AND: [
@@ -186,7 +233,7 @@ async function createConversation(req, res) {
 }
     );
     if (existingConversation) {
-        return res.status(401).json({
+        return res.status(409).json({
             message: "Conversation already exists!",
             id: existingConversation.id
         })
@@ -205,8 +252,11 @@ async function createConversation(req, res) {
             conversationId: createdConversation.id,
             userId: req.body.memberId
         }
-    });
+    })
+     return res.status(201).json(createdConversation)}
+    ;
+
  
-    return res.status(201).json(createdConversation);
+
 }
 export { getSignup, getLogin, getMe, getConversations, getConversation, sendMessage, getUser, createConversation };
