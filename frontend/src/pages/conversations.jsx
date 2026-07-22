@@ -25,11 +25,14 @@ function GetConversations(){
     <>
     {conversations.map((member) => {
       return (
+        <>
       <div key={member.conversation.id}
       onClick={() => navigate(`/conversations/${member.conversation.id}`)}>
         <h2>Conversation #{member.conversation.id}</h2>
         <p>Messages: {member.conversation.messages.length}</p>
       </div>
+      <button onClick={() => navigate("/newChat")}>Create a new chat</button>
+      </>
     )
     })}
     </>

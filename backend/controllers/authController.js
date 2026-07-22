@@ -134,4 +134,79 @@ async function sendMessage(req, res) {
 
     return res.status(201).json(newMessage);
 }
-export { getSignup, getLogin, getMe, getConversations, getConversation, sendMessage };
+
+async function getUser(req, res) {
+    const searchedUser = req.query.search;
+  const users = await prisma.user.findMany({
+  where: {
+    id: {
+      not: req.user.id,
+    },
+    OR: [
+      {
+        username: {
+          contains: req.query.search,
+          mode: "insensitive",
+        },
+      },
+      {
+        name: {
+          contains: req.query.search,
+          mode: "insensitive",
+        },
+      },
+    ],
+  },
+  select: {
+    id: true,
+    username: true,
+    name: true,
+  },
+});
+return res.json(users);
+};
+
+async function createConversation(req, res) {
+       const existingConversation = await prisma.conversation.findFirst({
+        where: {
+            AND: [
+                {
+                participants: {
+    some: {
+        userId: req.user.id
+    }
+}}, {
+    participants: {
+    some: {
+        userId: req.body.memberId
+    }
+   }
+}            ]
+        }
+}
+    );
+    if (existingConversation) {
+        return res.status(401).json({
+            message: "Conversation already exists!",
+            id: existingConversation.id
+        })
+    }
+    const createdConversation = await prisma.conversation.create({
+        data: {}
+    });
+     await prisma.conversationMember.create({
+        data: {
+            conversationId: createdConversation.id,
+            userId: req.user.id
+        }
+    })
+    await prisma.conversationMember.create({
+        data: {
+            conversationId: createdConversation.id,
+            userId: req.body.memberId
+        }
+    });
+ 
+    return res.status(201).json(createdConversation);
+}
+export { getSignup, getLogin, getMe, getConversations, getConversation, sendMessage, getUser, createConversation };

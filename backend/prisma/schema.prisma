@@ -40,6 +40,7 @@ model Conversation {
   createdAt DateTime @default(now())
   messages Message[]
   participants ConversationMember[]
+  isGroup      Boolean  @default(false)
 }
 
 model ConversationMember {

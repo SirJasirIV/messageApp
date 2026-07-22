@@ -1,6 +1,6 @@
 import express from "express";
 const router = express.Router();
-import { getSignup, getLogin, getMe, getConversations, getConversation, sendMessage } from "../controllers/authController.js"
+import { getSignup, getLogin, getMe, getConversations, getConversation, sendMessage, getUser, createConversation } from "../controllers/authController.js"
 import verifyUser from "../middleware/middleware.js"
 
 router.post("/signup", getSignup);
@@ -17,4 +17,10 @@ router.post(
     verifyUser,
     sendMessage
 );
+router.get(
+  "/users",
+  verifyUser,
+  getUser
+)
+router.post("/conversations/create", verifyUser, createConversation)
 export default router;
