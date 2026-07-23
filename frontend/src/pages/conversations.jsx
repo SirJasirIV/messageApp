@@ -8,19 +8,20 @@ function GetConversations(){
       
     
    const token = localStorage.getItem("token");
-   const response = await fetch("http://localhost:3000/auth/conversations", {
+   const response = await fetch("http://localhost:3000/connect/conversations", {
     headers: {
           Authorization: `Bearer ${token}`
     }
    })
    const data = await response.json();
-   console.log(data);
-   setConversations(data)
+   setConversations(data);
   } 
 
   fetchConversations();
 }, []);
-   const navigate = useNavigate();
+
+  const navigate = useNavigate();
+
   return (
     <>
     {conversations.map((member) => {
@@ -37,6 +38,6 @@ function GetConversations(){
     })}
     </>
   )
-}
+};
 
 export default GetConversations;

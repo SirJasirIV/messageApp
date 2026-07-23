@@ -8,27 +8,25 @@ function Messages() {
 
         async function getMessage() {
             const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:3000/auth/conversations/${conversationId}`, {
+            const response = await fetch(`http://localhost:3000/connect/conversations/${conversationId}`, {
             headers: {
             Authorization: `Bearer ${token}`
         }
    })
    const data = await response.json();
-   console.log(data);
    setConversation(data);
 }
   useEffect(() => {
     getMessage();
 }, [conversationId]);
 
-    console.log(conversationId);
     if (!conversation) {
     return <h1>Loading...</h1>;
 }
     async function sendMessage(e) {
         e.preventDefault();
         const token = localStorage.getItem("token");
-        const response = await fetch(`http://localhost:3000/auth/conversations/${conversationId}/messages`, {
+        const response = await fetch(`http://localhost:3000/connect/conversations/${conversationId}/messages`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -37,15 +35,14 @@ function Messages() {
             body: JSON.stringify({
             text: textMessage
             })
-        })
+        });
         if (response.ok) {
        setTextMessage("");
        await getMessage();
-    }
+    };
         const data = await response.json();
-        console.log(data);
         await getMessage();
-    }
+    };
     return (
     <>
     <h1>Conversation {conversationId}</h1>
@@ -61,6 +58,6 @@ function Messages() {
     </form>
     </>
     )
-}
+};
 
 export default Messages;

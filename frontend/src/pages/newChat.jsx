@@ -8,23 +8,22 @@ function NewChat() {
     const [isGroup, setIsGroup] = useState(false);
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [groupName, setGroupName] = useState("");
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     async function addUser(e) {
         e.preventDefault();
         const token = localStorage.getItem("token");
-        const response = await fetch(`http://localhost:3000/auth/users?search=${searchedUser}`, {
+        const response = await fetch(`http://localhost:3000/connect/users?search=${searchedUser}`, {
         method: "GET", 
         headers: {
                 Authorization: `Bearer ${token}`
             }
         });
         const data = await response.json();
-        console.log(data);
         setUsers(data);
     }
     async function createConversation(participantId) {
         const token = localStorage.getItem("token");
-        const response = await fetch(`http://localhost:3000/auth/conversations/create`, {
+        const response = await fetch(`http://localhost:3000/connect/conversations/create`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -34,10 +33,9 @@ function NewChat() {
                 memberId: participantId,
                 isGroup: isGroup
             })
-        })
+        });
         const data = await response.json();
-        console.log(data)
-        navigate(`/conversations/${data.id}`)
+        navigate(`/conversations/${data.id}`);
     } 
 function toggleUser(user) {
     const alreadySelected = selectedUsers.some(
@@ -56,12 +54,12 @@ function toggleUser(user) {
             user
         ]);
     }
-}
+};
 
     async function createGroup() {
         const token = localStorage.getItem("token");
         const memberIds = selectedUsers.map(user => user.id);
-        const response = await fetch (`http://localhost:3000/auth/conversations/create`,{
+        const response = await fetch (`http://localhost:3000/connect/conversations/create`,{
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -72,7 +70,7 @@ function toggleUser(user) {
                 memberIds: memberIds,
                 isGroup: isGroup
             })
-        }) 
+        }); 
         const data = await response.json();
         navigate(`/conversations/${data.id}`);
     }
@@ -123,7 +121,7 @@ function toggleUser(user) {
         toggleUser(user);
       } else {
         createConversation(user.id);
-      }
+      };
     }}
   >
     <h3>{user.name}</h3>
