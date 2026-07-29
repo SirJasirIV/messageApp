@@ -1,9 +1,7 @@
 import jsonwebtoken from "jsonwebtoken";
 
 function verifyUser(req, res, next){
-    console.log("Authorization header:", req.headers.authorization);
     const data = req.headers.authorization;
-    console.log("Authorization header:", data);
     if (!data) {
         return res.status(401).json({
             message: "unauthorized"

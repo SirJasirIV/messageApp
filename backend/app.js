@@ -1,7 +1,7 @@
 import express from "express";
 const app = express();
 import router from "./routers/authRouter.js";
-import indexRouter from "./router/indexRouter.js"
+import indexRouter from "./routers/indexRouter.js"
 import cors from "cors";
 
 app.use(express.json());
