@@ -55,7 +55,8 @@ function Login() {
         }
     };
     return (
-    <>
+ 
+      <div className={styles.page}>
       <h1 className={styles.welcome}>Welcome to <img src={logo} alt="Wink" className={styles.logo}/></h1>
       <h1 className={styles.login}>Login to your account</h1>
       <div >
@@ -82,7 +83,8 @@ function Login() {
 
    
       </div>
-    </>
+      </div>
+    
   );
 }
 

@@ -41,6 +41,7 @@ function Messages() {
        await getMessage();
     };
         const data = await response.json();
+        console.log(data);
         await getMessage();
     };
     return (

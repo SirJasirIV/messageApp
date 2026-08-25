@@ -1,0 +1,102 @@
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar {
+  width: 300px;
+  height: 100%;
+  border-right: rgb(17, 17, 17) 1px solid;
+  overflow-y: auto;
+  background-image: linear-gradient(45deg, #082564, #0a0063);
+}
+
+.chat {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  overflow-y: auto;
+  background-image: linear-gradient(45deg, #4078f0, #0a0063);
+}
+.conversationName{
+  background-color: rgb(10, 10, 10);
+  color: whitesmoke;
+  padding-left: 10px;
+  margin: 0;
+}
+.button{
+position: fixed;
+  bottom: 0;
+  width: 300px;
+  background-color: #0d3488;
+  border-radius: 7px ;
+  border: black;
+  color: #e5e5ea;
+  font-family: sans-serif;
+  font-weight: 500;
+  margin-bottom: 4px;
+  font-size: 27px;
+}
+.button:hover{
+  background-color: #1946a5;
+}
+.send {
+  display: flex;
+  width: 100%;
+  padding: 1rem;
+  border-top: 1px solid black;
+  box-sizing: border-box;
+  flex-shrink: 0; 
+}
+
+.send input {
+  flex: 1;
+  padding: 8px;
+  margin-right: 8px;
+  background-color: #082564;
+  border: black;
+  border-radius: 4px;
+  color: rgb(185, 185, 185);
+}
+
+.send button {
+  background-color: #0d3488;
+  border: black;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.urMessage {
+  align-self: flex-end;
+  background-color: #4078f0;
+  color: rgb(36, 13, 13);
+  border-radius: 12px;
+  padding: 8px 12px;
+  max-width: 70%;
+}
+
+.theirMessage {
+  align-self: flex-start;
+  background-color: #e5e5ea;
+  color: black;
+  border-radius: 12px;
+  padding: 8px 12px;
+  max-width: 60%;
+}

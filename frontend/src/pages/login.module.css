@@ -1,15 +1,15 @@
-body { 
+
+.page {
   margin: 0;
   padding: 0;
   background-image: linear-gradient(45deg, #4078f0, #0a0063);
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   font-family: sans-serif;
 }
-
-
 .login {
     color: rgb(206, 190, 190);
     display: flex;

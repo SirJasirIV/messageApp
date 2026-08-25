@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import { data, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import ConversationList from "../components/ConversationList.jsx";
+import ChatWindow from "../components/ChatWindow.jsx";
+import styles from "./conversation.module.css"
 
 function GetConversations(){
   const [ conversations, setConversations ] = useState([]);
+  const [selectedConversation, setSelectedConversation] = useState(null);
   useEffect(() => {
     async function fetchConversations() {
       
@@ -14,6 +18,7 @@ function GetConversations(){
     }
    })
    const data = await response.json();
+   console.log(data)
    setConversations(data);
   } 
 
@@ -24,18 +29,24 @@ function GetConversations(){
 
   return (
     <>
-    {conversations.map((member) => {
-      return (
-        <>
-      <div key={member.conversation.id}
-      onClick={() => navigate(`/conversations/${member.conversation.id}`)}>
-        <h2>Conversation #{member.conversation.id}</h2>
-        <p>Messages: {member.conversation.messages.length}</p>
-      </div>
-      <button onClick={() => navigate("/newChat")}>Create a new chat</button>
-      </>
-    )
-    })}
+<div className={styles.container}>
+  <div className={styles.sidebar}>
+    <ConversationList
+      conversations={conversations}
+      onSelect={setSelectedConversation}
+    />
+    <button className={styles.button} onClick={() => navigate("/newChat")}>Create a new chat</button>
+  </div>
+
+  <div className={styles.chat}>
+    {selectedConversation ? (
+      <ChatWindow conversation={selectedConversation} />
+    ) : (
+      <p>Select a conversation</p>
+    )}
+  </div>
+</div>
+    
     </>
   )
 };
