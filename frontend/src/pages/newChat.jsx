@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import styles from "./newChat.module.css"
 
 ;
 function NewChat() {
@@ -75,17 +76,22 @@ function toggleUser(user) {
         navigate(`/conversations/${data.id}`);
     }
     return (
-        <>
-        <h1>New chaaat</h1>
-        <hr />
+        <div className={styles.page}>
+            <button className={styles.backButton} onClick={() => navigate(-1)}>
+    ← Back
+</button>
+        <h1 className={styles.header}>Create a new chat</h1>
         
-        <form onSubmit={addUser}>
-            <label htmlFor="conver">Choose the type of the conversation</label>
-            <label htmlFor="direct"></label>
+        <form className={styles.form} onSubmit={addUser}>
+            <label className={styles.choose} htmlFor="conver">Choose the type of the conversation</label>
+            <div className={styles.type}>
+            <label htmlFor="direct" className={styles.label}>DM</label>
             <input type="radio" name="conver" id="direct" value="direct" onChange={() => setIsGroup(false)}/>
-            <label htmlFor="group"></label>
-            <input type="radio" name="conver" value="group" id="group" onChange={() => setIsGroup(true)}/>
-            <label htmlFor="username">Enter the user of the participants</label>
+            
+            <input type="radio" name="conver" value="group" id="group" onChange={() => setIsGroup(true)} className={styles.separator}/>
+            <label htmlFor="group" className={styles.label}>Group</label>
+            </div>
+            <label htmlFor="username" className={styles.tut}>Enter the user of the participants</label>
             <input type="text" id="username" onChange={(e) => setSearchedUser(e.target.value)}/>
             <button type="submit">Submit</button>
         </form>
@@ -95,6 +101,7 @@ function toggleUser(user) {
     <button
         key={user.id}
         onClick={() => toggleUser(user)}
+        className={styles.selectedChip}
     >
         {user.name} ✕
     </button>
@@ -116,6 +123,7 @@ function toggleUser(user) {
        {users.map((user) => (
   <div
     key={user.id}
+    className={styles.userRow}
     onClick={() => {
       if (isGroup) {
         toggleUser(user);
@@ -128,7 +136,7 @@ function toggleUser(user) {
     <p>@{user.username}</p>
   </div>
 ))}
-        </>
+        </div>
     )
 
 }

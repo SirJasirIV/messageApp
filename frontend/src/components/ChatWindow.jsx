@@ -76,7 +76,7 @@ const currentUserId = getUserIdFromToken(token);
             <h3>
                 {conversation.conversation.isGroup
                     ? conversation.conversation.name
-                    : `Conversation #${conversation.conversation.id}`}
+                    : `Conversation ${conversation.conversation.participants}`}
             </h3>
             <div className={styles.messages}>
             {conversationData.messages.map((message) => (

@@ -45,6 +45,7 @@ function Login() {
         });
         const me = await meResponse.json();
         console.log(me);
+        localStorage.setItem("userId", me.id);
         setLoading(false)
         if (me.verified) {
           setVerified(true)

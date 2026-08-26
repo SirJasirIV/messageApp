@@ -9,6 +9,17 @@ async function getConversations(req, res) {
             conversation: {
                 include: {
                     messages: true,
+                    participants: {
+                     include: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                username: true
+                            }
+                        }
+                     }
+                    }
                 }
             }  
         }})

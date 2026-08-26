@@ -1,0 +1,140 @@
+.page {
+    background-image: linear-gradient(45deg, #4078f0, #0a0063);
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    padding: 2rem;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: sans-serif;
+}
+
+.header {
+    color: rgb(206, 190, 190);
+    margin-top: 0;
+    font-size: 36px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 420px;
+    max-width: 90%;
+    background-color: rgb(14, 13, 13);
+    border-radius: 10px;
+    box-shadow: 0 15px 35px rgba(0,0,0,.35);
+    padding: 2rem;
+    margin-top: 1rem;
+}
+
+.choose {
+    color: rgb(184, 179, 179);
+    font-weight: 600;
+    font-size: 20px;
+    text-align: center;
+}
+
+.type {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.separator {
+    margin-left: 10px;
+}
+
+.label {
+    color: #8fb5ff;
+    font-weight: 600;
+}
+
+.form input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    background-color: transparent;
+    border: 2px solid rgb(160, 160, 248);
+    outline: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.form button {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #4078f0;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color .2s ease, transform .2s ease;
+}
+
+.form button:hover {
+    background: #2f63d3;
+    transform: translateY(-1px);
+}
+
+.selectedChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #4078f0;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 12px;
+    margin: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.userRow {
+    display: flex;
+    flex-direction: column;
+    width: 420px;
+    max-width: 90%;
+    background-color: rgb(14, 13, 13);
+    color: white;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 8px;
+    cursor: pointer;
+    transition: transform .15s ease;
+}
+
+.userRow:hover {
+    transform: translateY(-1px);
+}
+
+.userRow p {
+    margin: 0;
+    color: #8fb5ff;
+    font-size: 13px;
+}
+
+.tut {
+    color: #8fb5ff;
+}
+
+.backButton {
+    align-self: flex-start;
+    background: transparent;
+    border: none;
+    color: #8fb5ff;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    padding: 0;
+    font-weight: 600;
+}
+
+.backButton:hover {
+    text-decoration: underline;
+}
