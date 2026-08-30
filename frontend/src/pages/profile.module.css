@@ -1,0 +1,107 @@
+.page {
+    background-image: linear-gradient(45deg, #4078f0, #0a0063);
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    padding: 2rem;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: sans-serif;
+}
+
+.backButton {
+    align-self: flex-start;
+    width: 420px;
+    max-width: 90%;
+    background: transparent;
+    border: none;
+    color: #8fb5ff;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    padding: 0;
+}
+
+.backButton:hover {
+    text-decoration: underline;
+}
+
+.card {
+    width: 420px;
+    max-width: 90%;
+    background-color: rgb(14, 13, 13);
+    border-radius: 10px;
+    box-shadow: 0 15px 35px rgba(0,0,0,.35);
+    padding: 2rem;
+    text-align: center;
+}
+
+.name {
+    color: rgb(206, 190, 190);
+    margin: 0;
+}
+
+.username {
+    color: #8fb5ff;
+    margin: 4px 0 0 0;
+}
+
+.bio {
+    color: white;
+    margin-top: 1rem;
+}
+
+.counts {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    color: rgb(184, 179, 179);
+    margin-top: 1.5rem;
+}
+
+.followButton {
+    margin-top: 1.5rem;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    background: #4078f0;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color .2s ease, transform .2s ease;
+}
+
+.followButton:hover:not(:disabled) {
+    background: #2f63d3;
+    transform: translateY(-1px);
+}
+
+.postsList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 420px;
+    max-width: 90%;
+    margin-top: 1.5rem;
+}
+
+.post {
+    background-color: rgb(14, 13, 13);
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 15px 35px rgba(0,0,0,.35);
+}
+
+.postText {
+    color: white;
+    margin: 0 0 8px 0;
+}
+
+.postMeta {
+    display: flex;
+    gap: 16px;
+    color: rgb(184, 179, 179);
+    font-size: 13px;
+}

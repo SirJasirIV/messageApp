@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import styles from "../pages/conversation.module.css"
 
 function ChatWindow({ conversation }){
@@ -65,7 +66,7 @@ function ChatWindow({ conversation }){
     if (!token) return null;
     try {
         const payload = JSON.parse(atob(token.split(".")[1]));
-        return payload.id ?? payload.userId ?? payload.sub; // depends on what your backend put in the token
+        return payload.id ?? payload.userId ?? payload.sub; 
     } catch {
         return null;
     }
@@ -81,7 +82,7 @@ const currentUserId = getUserIdFromToken(token);
             <div className={styles.messages}>
             {conversationData.messages.map((message) => (
                 <div key={message.id} className={message.author.id === currentUserId ? styles.urMessage : styles.theirMessage}>
-                    <h3>{message.author.name}</h3>
+                    <h3><Link to={`/users/${message.author.id}`}>{message.author.name}</Link></h3>
                     <p>{message.text}</p>
                 </div>
             ))}

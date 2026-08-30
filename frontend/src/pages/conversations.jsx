@@ -41,6 +41,7 @@ function GetConversations(){
             conversations={conversations}
             onSelect={setSelectedConversation}
           />
+          <button onClick={() => navigate("/feed")}>Home</button>
           <button className={styles.button} onClick={() => navigate("/newChat")}>Create a new chat</button>
         </div>
 

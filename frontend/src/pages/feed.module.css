@@ -1,0 +1,178 @@
+.page {
+    background-image: linear-gradient(45deg, #4078f0, #0a0063);
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    padding: 2rem;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: sans-serif;
+    color: rgb(206, 190, 190);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 420px;
+    max-width: 90%;
+}
+
+.postForm {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 420px;
+    max-width: 90%;
+    background-color: rgb(14, 13, 13);
+    border-radius: 10px;
+    box-shadow: 0 15px 35px rgba(0,0,0,.35);
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.postInput {
+    width: 100%;
+    min-height: 80px;
+    padding: 12px;
+    background-color: transparent;
+    border: 2px solid rgb(160, 160, 248);
+    outline: none;
+    color: white;
+    font-size: 16px;
+    font-family: sans-serif;
+    border-radius: 8px;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+.postButton {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #4078f0;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color .2s ease, transform .2s ease;
+}
+
+.postButton:hover:not(:disabled) {
+    background: #2f63d3;
+    transform: translateY(-1px);
+}
+
+.postButton:disabled {
+    background: #555;
+    cursor: not-allowed;
+}
+
+.postsList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 420px;
+    max-width: 90%;
+    margin-top: 1.5rem;
+}
+
+.post {
+    background-color: rgb(14, 13, 13);
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 15px 35px rgba(0,0,0,.35);
+}
+
+.postAuthor {
+    color: #8fb5ff;
+    margin: 0 0 8px 0;
+}
+
+.postText {
+    color: white;
+    margin: 0 0 8px 0;
+}
+
+.postMeta {
+    display: flex;
+    gap: 16px;
+    color: rgb(184, 179, 179);
+    font-size: 13px;
+}
+
+.authorLink {
+    color: inherit;
+    text-decoration: none;
+}
+
+.authorLink:hover {
+    text-decoration: underline;
+}
+
+.postActions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 10px;
+}
+
+.likeButton, .likedButton {
+    background: transparent;
+    border: 1px solid rgb(160, 160, 248);
+    border-radius: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+    color: rgb(184, 179, 179);
+    font-size: 14px;
+}
+
+.likedButton {
+    color: #ff5c7a;
+    border-color: #ff5c7a;
+}
+
+.commentCount {
+    color: rgb(184, 179, 179);
+    font-size: 13px;
+}
+
+.commentsList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 10px 0;
+    padding-left: 4px;
+}
+
+.comment {
+    color: rgb(206, 190, 190);
+    font-size: 14px;
+}
+
+.commentForm {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.commentForm input {
+    flex: 1;
+    padding: 8px;
+    background-color: transparent;
+    border: 2px solid rgb(160, 160, 248);
+    outline: none;
+    color: white;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.commentForm button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    background: #4078f0;
+    color: white;
+    cursor: pointer;
+}

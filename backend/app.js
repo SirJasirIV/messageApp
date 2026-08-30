@@ -1,5 +1,6 @@
 import express from "express";
 const app = express();
+app.set("etag", false);
 import router from "./routers/authRouter.js";
 import indexRouter from "./routers/indexRouter.js"
 import cors from "cors";
