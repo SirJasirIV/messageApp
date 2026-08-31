@@ -21,6 +21,7 @@ model User {
   createdAt DateTime  @default(now())
   bio       String?
   profilePic String?
+  isGuest   Boolean   @default(false)
 
   messages  Message[]
   memberOf  ConversationMember[]
@@ -38,6 +39,7 @@ model User {
 model Message {
   id        Int      @id @default(autoincrement())
   text      String
+  imageUrl  String?
   createdAt DateTime @default(now())
 
   authorId  Int
@@ -98,11 +100,17 @@ model Like {
   @@id([userId, postId])
 }
 
+enum FollowStatus {
+  PENDING
+  ACCEPTED
+}
+
 model Follow {
   followerId  Int
   follower    User   @relation("follower", fields: [followerId], references: [id])
   followingId Int
   following   User   @relation("following", fields: [followingId], references: [id])
+  status      FollowStatus @default(PENDING)
   createdAt   DateTime @default(now())
 
   @@id([followerId, followingId])

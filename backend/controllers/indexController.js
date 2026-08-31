@@ -57,6 +57,7 @@ async function getConversation(req, res) {
 };
     return res.json(conversation);
 };
+
 async function sendMessage(req, res) {
     const checkUser = await prisma.conversationMember.findUnique({
         where: { userId_conversationId: {
@@ -65,43 +66,32 @@ async function sendMessage(req, res) {
          }}
         });
     if (!checkUser) {
-    return res.status(401).json({
-        message: "Access to conversation denied"
-      })
-    };
-    if (!req.body.text?.trim()) {
-    return res.status(400).json({
-        message: "Message cannot be empty"
-    })};
+        return res.status(401).json({ message: "Access to conversation denied" });
+    }
+    if (!req.body.text?.trim() && !req.body.imageUrl) {
+        return res.status(400).json({ message: "Message cannot be empty" });
+    }
     const newMessage = await prisma.message.create({
-    data: { text: req.body.text,
-        authorId: req.user.id,
-        conversationId: Number(req.params.conversationId)
-       }
+        data: {
+            text: req.body.text || "",
+            imageUrl: req.body.imageUrl || null,
+            authorId: req.user.id,
+            conversationId: Number(req.params.conversationId)
+        }
     });
 
     return res.status(201).json(newMessage);
 }
+
 async function getUser(req, res) {
   const searchedUser = req.query.search;
   const users = await prisma.user.findMany({
   where: {
-    id: {
-      not: req.user.id,
-    },
+    id: { not: req.user.id },
+    isGuest: false,
     OR: [
-      {
-        username: {
-          contains: req.query.search,
-          mode: "insensitive",
-        },
-      },
-      {
-        name: {
-          contains: searchedUser,
-          mode: "insensitive",
-        },
-      },
+      { username: { contains: req.query.search, mode: "insensitive" } },
+      { name: { contains: searchedUser, mode: "insensitive" } },
     ],
   },
   select: {
@@ -189,4 +179,12 @@ const existingConversation = await prisma.conversation.findFirst({
     
 };
 
-export { getConversations, getConversation, sendMessage, getUser, createConversation }
+async function uploadImage(req, res) {
+    if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+    }
+    const url = `http://localhost:3000/uploads/${req.file.filename}`;
+    return res.status(201).json({ url });
+}
+
+export { getConversations, getConversation, sendMessage, getUser, createConversation, uploadImage };

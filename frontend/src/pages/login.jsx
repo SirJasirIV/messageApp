@@ -55,6 +55,31 @@ function Login() {
           setVerified(false)
         }
     };
+    async function handleGuestLogin() {
+    setLoading(true);
+    const response = await fetch("http://localhost:3000/auth/guest", {
+        method: "POST"
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+        setMessage(data.message || "Something went wrong");
+        setLoading(false);
+        return;
+    }
+
+    localStorage.setItem("token", data.token);
+    const token = localStorage.getItem("token");
+
+    const meResponse = await fetch("http://localhost:3000/auth/me", {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    const me = await meResponse.json();
+    localStorage.setItem("userId", me.id);
+
+    setLoading(false);
+    navigate("/feed");
+}
     return (
  
       <div className={styles.page}>
@@ -75,6 +100,9 @@ function Login() {
         <button className={styles.button} disabled={loading} type="submit">
     {loading ? <div className={styles.spinner}></div> : "Login"}
      </button>
+     <button type="button" className={styles.guestButton} onClick={handleGuestLogin} disabled={loading}>
+    Continue as guest
+</button>
      </div>
            <Link to="/signup" className={styles.link}>
         Don't have an account? Sign up

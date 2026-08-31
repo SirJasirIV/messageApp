@@ -1,9 +1,10 @@
 import express from "express";
 const indexRouter = express.Router();
 import { getFeed, getPost, createPost, deletePost, likePost, unlikePost, commentOnPost } from "../controllers/postsController.js";
-import { getConversations, getConversation, sendMessage, getUser, createConversation } from "../controllers/indexController.js";
-import { getUserProfile, followUser, unfollowUser } from "../controllers/followController.js";
+import { getConversations, getConversation, sendMessage, getUser, createConversation, uploadImage } from "../controllers/indexController.js";
+import { getUserProfile, followUser, unfollowUser, getAllUsers, getIncomingRequests, acceptFollowRequest, updateMyProfile } from "../controllers/followController.js";
 
+import upload from "../middleware/upload.js";
 import verifyUser from "../middleware/middleware.js";
 
 indexRouter.get("/conversations", verifyUser, getConversations);
@@ -80,5 +81,36 @@ indexRouter.delete(
   "/users/:userId/follow",
    verifyUser, 
    unfollowUser);
+
+indexRouter.get(
+  "/all-users",
+  verifyUser,
+  getAllUsers
+)
+
+indexRouter.get(
+  "/follow-requests",
+  verifyUser,
+  getIncomingRequests
+)
+
+indexRouter.post(
+  "/follow-requests/:followerId/accept",
+  verifyUser,
+  acceptFollowRequest
+)
+
+indexRouter.post(
+  "/upload", 
+  verifyUser, 
+  upload.single("image"), 
+  uploadImage
+);
+
+indexRouter.patch(
+  "/me",
+  verifyUser,
+  updateMyProfile
+);
 
 export default indexRouter;

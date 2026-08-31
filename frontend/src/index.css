@@ -1,7 +1,15 @@
-html, body, #root {
+@import "./styles/variables.css";
+
+html,
+body,
+#root {
   margin: 0;
   padding: 0;
+  max-width: none;
+  width: 100%;
+  min-height: 100vh;
 }
+
 body {
-  font-family: sans-serif;
+  background-color: var(--color-card-bg);
 }

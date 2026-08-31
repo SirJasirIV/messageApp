@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import styles from "./feed.module.css";
+import uploadFile from "../utils/fileUpl";
+import { logout } from "../utils/auth";
 
 function Feed() {
     const [posts, setPosts] = useState([]);
@@ -27,27 +29,48 @@ function Feed() {
         fetchFeed();
     }, []);
 
-    async function handleCreatePost(e) {
-        e.preventDefault();
-        if (!postText.trim()) return;
 
-        setPosting(true);
-        const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:3000/connect/posts", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({ text: postText })
-        });
 
-        if (response.ok) {
-            setPostText("");
-            await fetchFeed();
-        }
-        setPosting(false);
+
+const [postImage, setPostImage] = useState(null);
+const [uploadingPostImage, setUploadingPostImage] = useState(false);
+
+async function handlePostImageChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingPostImage(true);
+    try {
+        const url = await uploadFile(file);
+        setPostImage(url);
+    } catch (error) {
+        console.error("Error uploading image:", error);
+    } finally {
+        setUploadingPostImage(false);
     }
+}
+
+async function handleCreatePost(e) {
+    e.preventDefault();
+    if (!postText.trim() && !postImage) return;
+
+    setPosting(true);
+    const token = localStorage.getItem("token");
+    const response = await fetch("http://localhost:3000/connect/posts", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ text: postText, imageUrl: postImage })
+    });
+
+    if (response.ok) {
+        setPostText("");
+        setPostImage(null);
+        await fetchFeed();
+    }
+    setPosting(false);
+}
 
     function isLikedByMe(post) {
         return post.likes.some(like => like.userId === currentUserId);
@@ -57,7 +80,7 @@ function Feed() {
         const token = localStorage.getItem("token");
         const alreadyLiked = isLikedByMe(post);
 
-        // optimistic update
+    
         setPosts(prevPosts =>
             prevPosts.map(p => {
                 if (p.id !== post.id) return p;
@@ -113,6 +136,9 @@ function Feed() {
             <div className={styles.header}>
                 <h1>Feed</h1>
                 <button onClick={() => navigate("/conversations")}>Messages</button>
+                <button onClick={() => navigate("/all-users")}>Find users</button>
+                <button onClick={() => navigate("/follow-requests")}>Requests</button>
+                <button onClick={() => logout(navigate)}>Sign Out</button>
             </div>
 
             <form className={styles.postForm} onSubmit={handleCreatePost}>
@@ -122,6 +148,13 @@ function Feed() {
                     value={postText}
                     onChange={(e) => setPostText(e.target.value)}
                 />
+                {postImage && (
+    <img src={postImage} alt="preview" className={styles.imagePreview} />
+)}
+<label className={styles.imageUploadLabel}>
+    {uploadingPostImage ? "Uploading..." : "📷 Add image"}
+    <input type="file" accept="image/*" onChange={handlePostImageChange} hidden />
+</label>
                 <button className={styles.postButton} type="submit" disabled={posting || !postText.trim()}>
                     {posting ? "Posting..." : "Post"}
                 </button>
@@ -139,6 +172,9 @@ function Feed() {
                                 </Link>
                             </h3>
                             <p className={styles.postText}>{post.text}</p>
+                           {post.imageUrl && (
+                           <img src={post.imageUrl} alt="post" className={styles.postImage} />
+                          )}
 
                             <div className={styles.postActions}>
                                 <button

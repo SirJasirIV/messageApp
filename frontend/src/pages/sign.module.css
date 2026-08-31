@@ -1,6 +1,5 @@
 body {
-    font-family: sans-serif;
-
+    font-family: var(--font-family);
 }
 .form {
     display: flex;
@@ -9,51 +8,48 @@ body {
     align-items: center;
     margin: 0 auto;
     border: none;
-    box-shadow: 0 15px 35px rgba(0,0,0,.35);
-    border-radius: 10px;
-    background-color: rgb(14, 13, 13);
+    box-shadow: var(--shadow-card);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-card-bg);
     width: 420px;
     max-width: 90%;
-    padding: 2rem;
+    padding: var(--space-xl);
     gap: 50px;
 }
 .link {
     margin-top: auto;
-    color: #8fb5ff;
+    color: var(--color-link);
     text-decoration: none;
     font-size: 14px;
 }
-
 .link:hover {
     text-decoration: underline;
 }
-
 .signUp {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 3px;
-    color: rgb(206, 190, 190);
-    font-size: 50px;
-    
+    color: var(--color-heading);
+    font-size: var(--font-size-xl);
 }
 .inputCont {
-     position: relative;
+    position: relative;
     width: 250px; 
-    color: white;
-    font-family: sans-serif;
+    color: var(--color-white);
+    font-family: var(--font-family);
     font-weight: 600;
     align-self: center;
 }
 .input {
     width: 100%;
-    padding: 12px;
+    padding: var(--space-md);
     background-color: transparent;
-    border: 2px solid rgb(160, 160, 248);
+    border: 2px solid var(--color-border);
     outline: none;
-    color: white;
-    font-size: 16px;
-    border-radius: 8px;
+    color: var(--color-white);
+    font-size: var(--font-size-md);
+    border-radius: var(--radius-md);
     box-sizing: border-box;
 }
 .label {
@@ -63,7 +59,7 @@ body {
     color: gray;
     pointer-events: none;
     transition: 0.3s;
-    background-color: rgb(14, 13, 13);
+    background-color: var(--color-card-bg);
     padding: 0 5px;
 }
 input:focus+label,
@@ -74,66 +70,59 @@ input:valid+label {
 }
 input:focus {
     border-color: #6da0ff;
-    box-shadow: 0 0 8px rgba(64,120,240,.6);
+    box-shadow: var(--shadow-glow);
 }
-.inputCont:hover{
+.inputCont:hover {
     transform: translateY(-1px);
-    box-shadow: 0 0 8px rgba(64,120,240,.6);
+    box-shadow: var(--shadow-glow);
 }
-
 .button {
     display: flex;
     justify-content: center;
     align-items: center;
     width: 250px;
-    padding: 12px;
+    padding: var(--space-md);
     border: none;
-    border-radius: 8px;
-    background: #4078f0;
-    color: white;
-    font-size: 16px;
+    border-radius: var(--radius-md);
+    background: var(--color-primary);
+    color: var(--color-white);
+    font-size: var(--font-size-md);
     cursor: pointer;
-    transition: background-color .2s ease,
-    transform .2s ease;
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 .btnCont {
-  margin-top: 25px;
+  margin-top: var(--space-lg);
 }
-
 .button:hover {
-    background: #2f63d3;
+    background: var(--color-primary-hover);
     transform: translateY(-1px);
-    box-shadow: 0 0 8px rgba(64,120,240,.6);
+    box-shadow: var(--shadow-glow);
 }
-
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 1000px rgb(14, 13, 13) inset;
+    -webkit-box-shadow: 0 0 0 1000px var(--color-card-bg) inset;
     -webkit-text-fill-color: white;
     caret-color: white;
     transition: background-color 9999s ease-in-out 0s;
     color: white;
 }
 input:-webkit-autofill {
-    border: 2px solid rgb(160, 160, 248);
+    border: 2px solid var(--color-border);
 }
 .spinner {
     width: 20px;
     height: 20px;
     border: 3px solid rgba(255,255,255,.3);
     border-top: 3px solid white;
-    border-radius: 50%;
+    border-radius: var(--radius-round);
     animation: spin .8s linear infinite;
 }
-
 @keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
 }
 .message {
-    color: rgb(255, 0, 0);
+    color: var(--color-error);
     text-align: center;
 }

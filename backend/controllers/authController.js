@@ -56,9 +56,7 @@ async function getLogin(req, res) {
   } 
     const token = jwt.sign(
   { id: foundUser.id },
-
   process.env.JWT_SECRET,
-  
   { expiresIn: "1h" });
 
   return res.status(200).json({
@@ -67,10 +65,52 @@ async function getLogin(req, res) {
   })
 };
 
-function getMe(req, res) {
+
+async function guestLogin(req, res) {
+    const guestUsername = `guest_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    const randomPassword = Math.random().toString(36).slice(2);
+    const hashedPass = await bcrypt.hash(randomPassword, 10);
+
+    const guestUser = await prisma.user.create({
+        data: {
+            name: "Guest",
+            username: guestUsername,
+            password: hashedPass,
+            isGuest: true
+        }
+    });
+
+    const token = jwt.sign(
+        { id: guestUser.id },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+    );
+
+    return res.status(201).json({
+        message: "Logged in as guest",
+        token
+    });
+}
+
+async function getMe(req, res) {
+    const user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: {
+            id: true,
+            name: true,
+            username: true,
+            isGuest: true
+        }
+    });
+
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
     return res.status(200).json({
-        verified: true
+        verified: true,
+        ...user
     });
 };
 
-export { getSignup, getLogin, getMe };
+export { getSignup, getLogin, guestLogin, getMe };

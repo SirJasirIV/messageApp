@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "./profile.module.css";
+import uploadFile from "../utils/fileUpl";
 
 function Profile() {
     const { userId } = useParams();
@@ -9,7 +10,35 @@ function Profile() {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [followLoading, setFollowLoading] = useState(false);
+   
 
+const [uploadingPic, setUploadingPic] = useState(false);
+
+async function handleProfilePicChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingPic(true);
+    try {
+        const token = localStorage.getItem("token");
+        const url = await uploadFile(file);
+
+        await fetch("http://localhost:3000/connect/me", {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ profilePic: url })
+        });
+
+        await fetchProfile();
+    } catch (error) {
+        console.error("Error uploading profile picture:", error);
+    } finally {
+        setUploadingPic(false);
+    }
+}
     async function fetchProfile() {
         try {
             const token = localStorage.getItem("token");
@@ -52,7 +81,7 @@ function Profile() {
             await fetch(
                 `http://localhost:3000/connect/users/${userId}/follow`,
                 {
-                    method: profile.isFollowing ? "DELETE" : "POST",
+                    method: profile.followStatus ? "DELETE" : "POST",
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
@@ -81,6 +110,23 @@ function Profile() {
             </button>
 
             <div className={styles.card}>
+                <img
+    src={profile.profilePic || "/default-avatar.png"}
+    alt={profile.name}
+    className={styles.avatar}
+/>
+
+{profile.isOwnProfile && (
+    <label className={styles.avatarUpload}>
+        {uploadingPic ? "Uploading..." : "Change photo"}
+        <input
+            type="file"
+            accept="image/*"
+            onChange={handleProfilePicChange}
+            hidden
+        />
+    </label>
+)}
                 <h1 className={styles.name}>{profile.name}</h1>
 
                 <p className={styles.username}>
@@ -113,7 +159,7 @@ function Profile() {
                         onClick={toggleFollow}
                         disabled={followLoading}
                     >
-                        {profile.isFollowing ? "Unfollow" : "Follow"}
+                        {profile.followStatus === "ACCEPTED" ? "Unfollow" : profile.followStatus === "PENDING" ? "Requested" : "Follow"}
                     </button>
                 )}
             </div>
