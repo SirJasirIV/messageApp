@@ -4,32 +4,28 @@ import jwt from "jsonwebtoken";
 
 async function getSignup(req, res) {
     const { name, user, password } = req.body;
-    const existingUser = await prisma.user.findUnique({
-        where: {
-            username: user
-        }
-    });
-    const hashedPass = await bcrypt.hash(password, 10)
 
-if (!name?.trim() || !user?.trim() || !password?.trim()) {
-    return res.status(400).json({
-        message: "All fields are required."
+    if (!name?.trim() || !user?.trim() || !password?.trim()) {
+        return res.status(400).json({ message: "All fields are required." });
+    }
+
+    const existingUser = await prisma.user.findUnique({
+        where: { username: user }
     });
-} if (existingUser) {
-    return res.status(409).json({
-        message: "Username already taken"
-    })
-};
+
+    if (existingUser) {
+        return res.status(409).json({ message: "Username already taken" });
+    }
+
+    const hashedPass = await bcrypt.hash(password, 10);
+
     await prisma.user.create({
-        data: {
-            name: name,
-            username: user,
-            password: hashedPass
-        }
+        data: { name, username: user, password: hashedPass }
     });
+
     return res.status(201).json({
         success: true,
-        message: "User created successfully",
+        message: "User created successfully"
     });
 }
 
@@ -67,29 +63,30 @@ async function getLogin(req, res) {
 
 
 async function guestLogin(req, res) {
-    const guestUsername = `guest_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    const randomPassword = Math.random().toString(36).slice(2);
-    const hashedPass = await bcrypt.hash(randomPassword, 10);
+    try {
+        const guestUsername = `guest_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+        const randomPassword = Math.random().toString(36).slice(2);
+        const hashedPass = await bcrypt.hash(randomPassword, 10);
 
-    const guestUser = await prisma.user.create({
-        data: {
-            name: "Guest",
-            username: guestUsername,
-            password: hashedPass,
-            isGuest: true
-        }
-    });
+        const guestUser = await prisma.user.create({
+            data: {
+                name: "Guest",
+                username: guestUsername,
+                password: hashedPass,
+                isGuest: true
+            }
+        });
 
-    const token = jwt.sign(
-        { id: guestUser.id },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-    );
+        const token = jwt.sign({ id: guestUser.id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-    return res.status(201).json({
-        message: "Logged in as guest",
-        token
-    });
+        return res.status(201).json({
+            message: "Logged in as guest",
+            token
+        });
+    } catch (error) {
+        console.error("Guest login failed:", error);
+        return res.status(500).json({ message: "Could not create guest account" });
+    }
 }
 
 async function getMe(req, res) {

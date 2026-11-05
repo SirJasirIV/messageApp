@@ -13,13 +13,17 @@ async function getUserProfile(req, res) {
             bio: true,
             profilePic: true,
             posts: {
-                orderBy: { createdAt: "desc" },
-                include: {
-                    likes: true,
-                    comments: { include: { author: true } }
-                }
-            }
+            orderBy: { createdAt: "desc" },
+            select: {
+                id: true,
+                text: true,
+                imageUrl: true,
+                createdAt: true,
+                likes: { select: { userId: true } },
+                comments: { select: { id: true } },
+            },
         }
+     }
     });
 
     if (!user) {

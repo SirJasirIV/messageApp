@@ -1,6 +1,6 @@
 import styles from "../pages/conversation.module.css"
 
-function ConversationItem({ conversation, onClick }) {
+function ConversationItem({ conversation, onClick, unread = 0 }) {
     const currentUserId = Number(localStorage.getItem("userId"));
 
     function getDisplayName() {
@@ -13,14 +13,13 @@ function ConversationItem({ conversation, onClick }) {
         return otherParticipant ? otherParticipant.user.name : `Conversation #${conversation.conversation.id}`;
     }
 
-    return (
-        <>
-            <div className={styles.item} onClick={() => onClick(conversation)}>
-                <h3 className={styles.conversationName}>
-                    {getDisplayName()}
-                </h3>
-            </div>
-        </>
+  return (
+        <div className={styles.item} onClick={() => onClick(conversation)}>
+            <h3 className={styles.conversationName}>
+                {getDisplayName()}
+            </h3>
+            {unread > 0 && <span className={styles.badge}>{unread}</span>}
+        </div>
     );
 }
 

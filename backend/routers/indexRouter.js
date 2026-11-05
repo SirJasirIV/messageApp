@@ -1,11 +1,15 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
+const uploadLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 30 });
 const indexRouter = express.Router();
+import { uploadSingle } from "../middleware/upload.js";
+import { blockGuests } from "../middleware/blockGuests.js";
+
+import verifyUser from "../middleware/middleware.js";
 import { getFeed, getPost, createPost, deletePost, likePost, unlikePost, commentOnPost } from "../controllers/postsController.js";
-import { getConversations, getConversation, sendMessage, getUser, createConversation, uploadImage } from "../controllers/indexController.js";
+import { getConversations, getConversation, sendMessage, getUser, createConversation, uploadImage, updateMe, typeValidation } from "../controllers/indexController.js";
 import { getUserProfile, followUser, unfollowUser, getAllUsers, getIncomingRequests, acceptFollowRequest, updateMyProfile } from "../controllers/followController.js";
 
-import upload from "../middleware/upload.js";
-import verifyUser from "../middleware/middleware.js";
 
 indexRouter.get("/conversations", verifyUser, getConversations);
 
@@ -100,17 +104,18 @@ indexRouter.post(
   acceptFollowRequest
 )
 
-indexRouter.post(
-  "/upload", 
-  verifyUser, 
-  upload.single("image"), 
+indexRouter.post("/upload",
+  verifyUser,
+  blockGuests,
+  uploadLimiter,
+  uploadSingle, 
   uploadImage
 );
 
 indexRouter.patch(
-  "/me",
-  verifyUser,
-  updateMyProfile
+  "/me", 
+  verifyUser, 
+  updateMe
 );
 
 export default indexRouter;

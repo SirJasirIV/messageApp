@@ -34,6 +34,7 @@ model User {
   followedBy Follow[] @relation("following")
   
   following  Follow[] @relation("follower")
+  uploads Upload[]
 }
 
 model Message {
@@ -114,4 +115,12 @@ model Follow {
   createdAt   DateTime @default(now())
 
   @@id([followerId, followingId])
+}
+
+model Upload {
+  id        Int      @id @default(autoincrement())
+  filename  String   @unique
+  ownerId   Int
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }

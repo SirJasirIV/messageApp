@@ -1,60 +1,121 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import ConversationList from "../components/ConversationList.jsx";
 import ChatWindow from "../components/ChatWindow.jsx";
-import styles from "./conversation.module.css"
+import { getSocket } from "../utils/socket";
+import styles from "./conversation.module.css";
+import { api } from "../utils/api";
+import logo from "../assets/Wink.png";
 
-function GetConversations(){
+async function loadConversations() {
+  const data = await api("/connect/conversations");
+  return Array.isArray(data) ? data : [];
+}
+
+function GetConversations() {
   const { conversationId } = useParams();
-  const [ conversations, setConversations ] = useState([]);
-  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [conversations, setConversations] = useState([]);
+  const [pickedId, setPickedId] = useState(null);
+  const [unread, setUnread] = useState({});
 
+  const conversationsRef = useRef([]);
+  const currentUserId = Number(localStorage.getItem("userId"));
+
+  
+  const activeId = pickedId ?? (conversationId ? Number(conversationId) : null);
+  const selectedConversation =
+    conversations.find((c) => c.conversation.id === activeId) ?? null;
+
+  function handleSelect(item) {
+    const id = item.conversation.id;
+    setPickedId(id);
+    setUnread((prev) => (prev[id] ? { ...prev, [id]: 0 } : prev));
+  }
+
+  
   useEffect(() => {
-    async function fetchConversations() {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3000/connect/conversations", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+    let cancelled = false;
+
+    loadConversations()
+      .then((data) => {
+        if (!cancelled) setConversations(data);
       })
-      const data = await response.json();
-      setConversations(data);
-    }
-    fetchConversations();
+      .catch((err) => console.error(err));
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
+  
   useEffect(() => {
-    if (!conversationId || conversations.length === 0) return;
-    const match = conversations.find(
-      c => String(c.conversation.id) === conversationId
-    );
-    if (match) setSelectedConversation(match);
-  }, [conversationId, conversations]);
+    conversationsRef.current = conversations;
+  }, [conversations]);
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    function onNewMessage(msg) {
+      const exists = conversationsRef.current.some(
+        (c) => c.conversation.id === msg.conversationId
+      );
+
+      if (!exists) {
+        loadConversations()
+          .then(setConversations)
+          .catch((err) => console.error(err));
+        return;
+      }
+
+      setConversations((prev) => {
+        const current = prev.find((c) => c.conversation.id === msg.conversationId);
+        if (!current) return prev;
+
+        const messages = current.conversation.messages ?? [];
+        if (messages.some((m) => m.id === msg.id)) return prev;
+
+        const updated = {
+          ...current,
+          conversation: {
+            ...current.conversation,
+            messages: [...messages, msg],
+          },
+        };
+        return [updated, ...prev.filter((c) => c !== current)];
+      });
+
+      if (msg.conversationId !== activeId && msg.author.id !== currentUserId) {
+        setUnread((prev) => ({
+          ...prev,
+          [msg.conversationId]: (prev[msg.conversationId] || 0) + 1,
+        }));
+      }
+    }
+
+    socket.on("message:new", onNewMessage);
+    return () => socket.off("message:new", onNewMessage);
+  }, [activeId, currentUserId]);
 
   return (
-    <>
-      <div className={styles.container}>
-        <div className={styles.sidebar}>
-          <ConversationList
-            conversations={conversations}
-            onSelect={setSelectedConversation}
-          />
-          <button onClick={() => navigate("/feed")}>Home</button>
-          <button className={styles.button} onClick={() => navigate("/newChat")}>Create a new chat</button>
-        </div>
-
-        <div className={styles.chat}>
-          {selectedConversation ? (
-            <ChatWindow conversation={selectedConversation} />
-          ) : (
-            <p>Select a conversation</p>
-          )}
-        </div>
+    <div className={styles.container}>
+      <div className={styles.sidebar}>
+        <ConversationList
+          conversations={conversations}
+          onSelect={handleSelect}
+          unread={unread}
+        />
       </div>
-    </>
-  )
-};
 
-export default GetConversations;  
+      <div className={styles.chat}>
+        {selectedConversation ? (
+          <ChatWindow conversation={selectedConversation} />
+        ) : (
+          <p className={styles.Image}><img src={logo} alt="Select a conversation to start chatting" /></p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default GetConversations;

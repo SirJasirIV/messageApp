@@ -1,39 +1,42 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styles from "./allUsers.module.css";
+import { api } from "../utils/api";
+
+async function loadUsers() {
+    const data = await api("/connect/all-users");
+    return Array.isArray(data) ? data : [];
+}
+
+function getInitial(name) {
+    return name?.trim()?.[0]?.toUpperCase() ?? "?";
+}
 
 function UsersIndex() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
-
-    async function fetchUsers() {
-        try {
-            const token = localStorage.getItem("token");
-            const response = await fetch("http://localhost:3000/connect/all-users", {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            const data = await response.json();
-            setUsers(data);
-        } catch (error) {
-            console.error("Error fetching users:", error);
-        } finally {
-            setLoading(false);
-        }
-    }
 
     useEffect(() => {
-        fetchUsers();
+        let cancelled = false;
+
+        loadUsers()
+            .then(data => {
+                if (!cancelled) setUsers(data);
+            })
+            .catch(err => console.error("Error fetching users:", err))
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     async function followUser(userId) {
         try {
-            const token = localStorage.getItem("token");
-            await fetch(`http://localhost:3000/connect/users/${userId}/follow`, {
-                method: "POST",
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            await fetchUsers();
+            await api(`/connect/users/${userId}/follow`, { method: "POST" });
+            setUsers(await loadUsers());
         } catch (error) {
             console.error("Error following user:", error);
         }
@@ -41,12 +44,8 @@ function UsersIndex() {
 
     async function unfollowUser(userId) {
         try {
-            const token = localStorage.getItem("token");
-            await fetch(`http://localhost:3000/connect/users/${userId}/follow`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            await fetchUsers();
+            await api(`/connect/users/${userId}/follow`, { method: "DELETE" });
+            setUsers(await loadUsers());
         } catch (error) {
             console.error("Error unfollowing user:", error);
         }
@@ -74,25 +73,41 @@ function UsersIndex() {
         );
     }
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) {
+        return (
+            <div className={styles.loader}>
+                <div className={styles.spinner} />
+            </div>
+        );
+    }
 
     return (
         <div className={styles.page}>
-            <div className={styles.header}>
-                <h1>Users</h1>
-                <button onClick={() => navigate("/feed")}>Back to Feed</button>
+            <div className={styles.titleRow}>
+                <h1 className={styles.title}>Find people</h1>
             </div>
+            <p className={styles.subtitle}>Follow people to see their posts in your feed.</p>
 
             <div className={styles.usersList}>
-                {users.map((user) => (
-                    <div key={user.id} className={styles.userRow}>
-                        <Link to={`/users/${user.id}`} className={styles.userLink}>
-                            <h3>{user.name}</h3>
-                            <p>@{user.username}</p>
-                        </Link>
-                        {renderButton(user)}
+                {users.length === 0 ? (
+                    <div className={styles.empty}>
+                        <span className={styles.emptyIcon}>🔍</span>
+                        <p>No users found.</p>
                     </div>
-                ))}
+                ) : (
+                    users.map((user, index) => (
+                        <div key={user.id} className={styles.userRow} style={{ "--i": index }}>
+                            <Link to={`/users/${user.id}`} className={styles.userLink}>
+                                <div className={styles.avatar}>{getInitial(user.name)}</div>
+                                <div className={styles.userText}>
+                                    <h3>{user.name}</h3>
+                                    <p>@{user.username}</p>
+                                </div>
+                            </Link>
+                            {renderButton(user)}
+                        </div>
+                    ))
+                )}
             </div>
         </div>
     );

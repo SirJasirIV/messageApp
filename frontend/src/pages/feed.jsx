@@ -1,86 +1,83 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styles from "./feed.module.css";
 import uploadFile from "../utils/fileUpl";
-import { logout } from "../utils/auth";
+import { api } from "../utils/api";
+
+async function loadFeed() {
+    const data = await api("/connect/feed");
+    return Array.isArray(data) ? data : [];
+}
 
 function Feed() {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [postText, setPostText] = useState("");
     const [posting, setPosting] = useState(false);
-    const [commentText, setCommentText] = useState({}); 
-    const navigate = useNavigate();
+    const [commentText, setCommentText] = useState({});
+    const [postImage, setPostImage] = useState(null);
+    const [uploadingPostImage, setUploadingPostImage] = useState(false);
     const currentUserId = Number(localStorage.getItem("userId"));
 
-    async function fetchFeed() {
-        const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:3000/connect/feed", {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-        const data = await response.json();
-        setPosts(data);
-        setLoading(false);
-    }
-
     useEffect(() => {
-        fetchFeed();
+        let cancelled = false;
+
+        loadFeed()
+            .then(data => {
+                if (!cancelled) setPosts(data);
+            })
+            .catch(err => console.error(err))
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
-
-
-
-const [postImage, setPostImage] = useState(null);
-const [uploadingPostImage, setUploadingPostImage] = useState(false);
-
-async function handlePostImageChange(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploadingPostImage(true);
-    try {
-        const url = await uploadFile(file);
-        setPostImage(url);
-    } catch (error) {
-        console.error("Error uploading image:", error);
-    } finally {
-        setUploadingPostImage(false);
+    async function handlePostImageChange(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        setUploadingPostImage(true);
+        try {
+            const url = await uploadFile(file);
+            setPostImage(url);
+        } catch (error) {
+            console.error("Error uploading image:", error);
+        } finally {
+            setUploadingPostImage(false);
+        }
     }
-}
 
-async function handleCreatePost(e) {
-    e.preventDefault();
-    if (!postText.trim() && !postImage) return;
+    async function handleCreatePost(e) {
+        e.preventDefault();
+        if (!postText.trim() && !postImage) return;
 
-    setPosting(true);
-    const token = localStorage.getItem("token");
-    const response = await fetch("http://localhost:3000/connect/posts", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ text: postText, imageUrl: postImage })
-    });
-
-    if (response.ok) {
-        setPostText("");
-        setPostImage(null);
-        await fetchFeed();
+        setPosting(true);
+        try {
+            await api("/connect/posts", {
+                method: "POST",
+                body: JSON.stringify({ text: postText, imageUrl: postImage })
+            });
+            setPostText("");
+            setPostImage(null);
+            setPosts(await loadFeed());
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setPosting(false);
+        }
     }
-    setPosting(false);
-}
 
     function isLikedByMe(post) {
         return post.likes.some(like => like.userId === currentUserId);
     }
 
     async function toggleLike(post) {
-        const token = localStorage.getItem("token");
         const alreadyLiked = isLikedByMe(post);
+        const previousPosts = posts;
 
-    
         setPosts(prevPosts =>
             prevPosts.map(p => {
                 if (p.id !== post.id) return p;
@@ -93,10 +90,14 @@ async function handleCreatePost(e) {
             })
         );
 
-        await fetch(`http://localhost:3000/connect/posts/${post.id}/like`, {
-            method: alreadyLiked ? "DELETE" : "POST",
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        try {
+            await api(`/connect/posts/${post.id}/like`, {
+                method: alreadyLiked ? "DELETE" : "POST"
+            });
+        } catch (err) {
+            console.error(err);
+            setPosts(previousPosts); 
+        }
     }
 
     async function handleAddComment(e, postId) {
@@ -104,18 +105,11 @@ async function handleCreatePost(e) {
         const text = commentText[postId];
         if (!text?.trim()) return;
 
-        const token = localStorage.getItem("token");
-        const response = await fetch(`http://localhost:3000/connect/posts/${postId}/comments`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({ text })
-        });
-
-        if (response.ok) {
-            const newComment = await response.json();
+        try {
+            const newComment = await api(`/connect/posts/${postId}/comments`, {
+                method: "POST",
+                body: JSON.stringify({ text })
+            });
             setPosts(prevPosts =>
                 prevPosts.map(p =>
                     p.id === postId
@@ -124,6 +118,8 @@ async function handleCreatePost(e) {
                 )
             );
             setCommentText(prev => ({ ...prev, [postId]: "" }));
+        } catch (err) {
+            console.error(err);
         }
     }
 
@@ -133,14 +129,6 @@ async function handleCreatePost(e) {
 
     return (
         <div className={styles.page}>
-            <div className={styles.header}>
-                <h1>Feed</h1>
-                <button onClick={() => navigate("/conversations")}>Messages</button>
-                <button onClick={() => navigate("/all-users")}>Find users</button>
-                <button onClick={() => navigate("/follow-requests")}>Requests</button>
-                <button onClick={() => logout(navigate)}>Sign Out</button>
-            </div>
-
             <form className={styles.postForm} onSubmit={handleCreatePost}>
                 <textarea
                     className={styles.postInput}
@@ -149,13 +137,17 @@ async function handleCreatePost(e) {
                     onChange={(e) => setPostText(e.target.value)}
                 />
                 {postImage && (
-    <img src={postImage} alt="preview" className={styles.imagePreview} />
-)}
-<label className={styles.imageUploadLabel}>
-    {uploadingPostImage ? "Uploading..." : "📷 Add image"}
-    <input type="file" accept="image/*" onChange={handlePostImageChange} hidden />
-</label>
-                <button className={styles.postButton} type="submit" disabled={posting || !postText.trim()}>
+                    <img src={postImage} alt="preview" className={styles.imagePreview} />
+                )}
+                <label className={styles.imageUploadLabel}>
+                    {uploadingPostImage ? "Uploading..." : "Add image"}
+                    <input type="file" accept="image/*" onChange={handlePostImageChange} hidden />
+                </label>
+                <button
+                    className={styles.postButton}
+                    type="submit"
+                    disabled={posting || uploadingPostImage || (!postText.trim() && !postImage)}
+                >
                     {posting ? "Posting..." : "Post"}
                 </button>
             </form>
@@ -172,9 +164,9 @@ async function handleCreatePost(e) {
                                 </Link>
                             </h3>
                             <p className={styles.postText}>{post.text}</p>
-                           {post.imageUrl && (
-                           <img src={post.imageUrl} alt="post" className={styles.postImage} />
-                          )}
+                            {post.imageUrl && (
+                                <img src={post.imageUrl} alt="post" className={styles.postImage} />
+                            )}
 
                             <div className={styles.postActions}>
                                 <button

@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import classes from "./sign.module.css";
 import logo from "../assets/Wink.png";
 import { useState } from "react";
+import { API_URL } from "../utils/api";
+
 function Signup() {
         const [loading, setLoading] = useState(false);
         const [message, setMessage] = useState("");
@@ -9,7 +11,7 @@ function Signup() {
         e.preventDefault();
         setLoading(true)
         const formData = new FormData(e.target);
-        const response = await fetch("http://localhost:3000/auth/signup", {
+        const response = await fetch(`${API_URL}/auth/signup`, {
         method: "POST",
         headers: {
         "Content-Type": "application/json",
@@ -29,7 +31,11 @@ function Signup() {
     }
   return (
     <>
-      <h1 className={classes.signUp}>Sign up for <img src={logo} alt="Wink" /></h1>
+    <header className={classes.header}>
+      <h1 className={classes.signUp}>
+           Sign up for <img src={logo} alt="Wink" className={classes.logo} />
+      </h1>
+    </header>
       <form onSubmit={handleSubmit} className={classes.form}>
         <div className={classes.inputCont}>
         <input type="text" name="name" className={classes.input} required/>
@@ -49,7 +55,7 @@ function Signup() {
           {loading ? <div className={classes.spinner}></div> : "Sign Up"}
         </button>
         </div>
-         <Link to="/" className={classes.link}>
+      <Link to="/" className={classes.link}>
         Already have an account? Login
       </Link>
       </form>

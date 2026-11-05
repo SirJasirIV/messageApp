@@ -23,12 +23,21 @@
   flex-direction: column;
   overflow: hidden;
 }
+.Image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
 
 .item {
   padding: 10px 12px;
   cursor: pointer;
   border-radius: var(--radius-sm);
   transition: background var(--transition-fast);
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
 }
 
 .item:hover {
@@ -111,4 +120,13 @@
 
 .imageUploadLabel:hover {
     text-decoration: underline;
+}
+.badge {
+  background: #e0245e;
+  color: white;
+  border-radius: 999px;
+  min-width: 1.4rem;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.8rem;
+  text-align: center;
 }

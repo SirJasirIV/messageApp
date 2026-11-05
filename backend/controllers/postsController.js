@@ -69,6 +69,9 @@ async function createPost(req, res) {
             author: { select: { id: true, name: true, username: true, profilePic: true } }
         }
     });
+    if (req.body.text.length > 500) {
+        return res.status(400).json({ message: "Post too long" });
+    }
 
     return res.status(201).json(newPost);
 }

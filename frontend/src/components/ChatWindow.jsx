@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "../pages/conversation.module.css";
 import uploadFile from "../utils/fileUpl";
+import { getSocket } from "../utils/socket";
+import { API_URL } from "../utils/api";
 
 function ChatWindow({ conversation }) {
     const [conversationData, setConversationData] = useState(null);
@@ -19,7 +21,7 @@ function ChatWindow({ conversation }) {
 
         try {
             const response = await fetch(
-                `http://localhost:3000/connect/conversations/${conversationId}`,
+                `${API_URL}/connect/conversations/${conversationId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -53,6 +55,23 @@ function ChatWindow({ conversation }) {
 
         loadConversation();
     }, [conversationId]);
+    useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !conversationId) return;
+
+    function onNewMessage(msg) {
+        if (msg.conversationId !== conversationId) return;
+
+        setConversationData((prev) => {
+            if (!prev) return prev;
+            if (prev.messages.some((m) => m.id === msg.id)) return prev; 
+            return { ...prev, messages: [...prev.messages, msg] };
+        });
+    }
+
+    socket.on("message:new", onNewMessage);
+    return () => socket.off("message:new", onNewMessage);
+}, [conversationId]);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({
@@ -94,7 +113,7 @@ function ChatWindow({ conversation }) {
             setUploadingChatImage(false);
         }
     }
-
+    
     async function sendMessage(e) {
         e.preventDefault();
 
@@ -104,7 +123,7 @@ function ChatWindow({ conversation }) {
 
         try {
             const response = await fetch(
-                `http://localhost:3000/connect/conversations/${conversationId}/messages`,
+                `${API_URL}/connect/conversations/${conversationId}/messages`,
                 {
                     method: "POST",
                     headers: {
@@ -156,7 +175,7 @@ function ChatWindow({ conversation }) {
                             (user) => user.id !== currentUserId
                         )
                         .map((user) => user.name)
-                        .join(", ")}
+                        .join(",")}
             </h3>
 
             <div className={styles.messages}>
@@ -201,7 +220,7 @@ function ChatWindow({ conversation }) {
                 )}
 
                 <label className={styles.imageUploadLabel}>
-                    📷
+                    <span>Upload Image</span>
 
                     <input
                         ref={fileInputRef}

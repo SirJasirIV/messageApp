@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "./profile.module.css";
 import uploadFile from "../utils/fileUpl";
+import { API_URL } from "../utils/api";
 
 function Profile() {
     const { userId } = useParams();
@@ -15,36 +16,43 @@ function Profile() {
 const [uploadingPic, setUploadingPic] = useState(false);
 
 async function handleProfilePicChange(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-    setUploadingPic(true);
-    try {
-        const token = localStorage.getItem("token");
-        const url = await uploadFile(file);
+  setUploadingPic(true);
+  try {
+    const token = localStorage.getItem("token");
+    const url = await uploadFile(file);
 
-        await fetch("http://localhost:3000/connect/me", {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({ profilePic: url })
-        });
+    const response = await fetch(`${API_URL}/connect/me`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ profilePic: url }),
+    });
 
-        await fetchProfile();
-    } catch (error) {
-        console.error("Error uploading profile picture:", error);
-    } finally {
-        setUploadingPic(false);
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.message || "Failed to update profile picture");
     }
+
+    await fetchProfile();
+  } catch (error) {
+    console.error("Error uploading profile picture:", error);
+    alert(error.message);
+  } finally {
+    setUploadingPic(false);
+    e.target.value = "";
+  }
 }
     async function fetchProfile() {
         try {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:3000/connect/users/${userId}`,
+                `${API_URL}/connect/users/${userId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -68,8 +76,15 @@ async function handleProfilePicChange(e) {
     }
 
     useEffect(() => {
-        setLoading(true);
-        fetchProfile();
+        async function startFetching() {
+            try{
+                setLoading(true);
+                fetchProfile();
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        startFetching();
     }, [userId]);
 
     async function toggleFollow() {
@@ -79,7 +94,7 @@ async function handleProfilePicChange(e) {
             const token = localStorage.getItem("token");
 
             await fetch(
-                `http://localhost:3000/connect/users/${userId}/follow`,
+                `${API_URL}/connect/users/${userId}/follow`,
                 {
                     method: profile.followStatus ? "DELETE" : "POST",
                     headers: {
@@ -99,7 +114,13 @@ async function handleProfilePicChange(e) {
     if (loading) return <p>Loading...</p>;
 
     if (!profile) return <p>User not found</p>;
-
+    const avatarImg = (
+    <img
+        src={profile.profilePic || "/default-avatar.png"}
+        alt={profile.name}
+        className={styles.avatar}
+        onError={(e) => { e.currentTarget.src = "/default-avatar.png"; }}
+    />)
     return (
         <div className={styles.page}>
             <button
@@ -110,23 +131,31 @@ async function handleProfilePicChange(e) {
             </button>
 
             <div className={styles.card}>
-                <img
-    src={profile.profilePic || "/default-avatar.png"}
-    alt={profile.name}
-    className={styles.avatar}
-/>
+                
 
-{profile.isOwnProfile && (
-    <label className={styles.avatarUpload}>
-        {uploadingPic ? "Uploading..." : "Change photo"}
+<label className={styles.avatarWrap}>
+
+
+{profile.isOwnProfile ? (
+    <label className={styles.avatarWrap}>
+        {avatarImg}
+        <span className={styles.avatarOverlay}>
+            {uploadingPic ? "…" : ""}
+        </span>
         <input
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             onChange={handleProfilePicChange}
             hidden
         />
     </label>
+) : (
+    <div className={`${styles.avatarWrap} ${styles.avatarStatic}`}>
+        {avatarImg}
+    </div>
 )}
+</label>
+
                 <h1 className={styles.name}>{profile.name}</h1>
 
                 <p className={styles.username}>
@@ -180,7 +209,7 @@ async function handleProfilePicChange(e) {
                             </span>
 
                             <span>
-                                {post.comments.length} comments
+                               {post.comments.length} comments
                             </span>
                         </div>
                     </div>

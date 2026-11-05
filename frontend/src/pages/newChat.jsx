@@ -1,143 +1,220 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "./newChat.module.css"
+import styles from "./newChat.module.css";
+import { api } from "../utils/api";
 
-;
+function getInitial(name) {
+    return name?.trim()?.[0]?.toUpperCase() ?? "?";
+}
+
 function NewChat() {
-    const [ searchedUser, setSearchedUser ] = useState("");
+    const [searchedUser, setSearchedUser] = useState("");
     const [users, setUsers] = useState([]);
+    const [searchedFor, setSearchedFor] = useState(null);
+    const [searching, setSearching] = useState(false);
     const [isGroup, setIsGroup] = useState(false);
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [groupName, setGroupName] = useState("");
+    const [creating, setCreating] = useState(false);
     const navigate = useNavigate();
-    async function addUser(e) {
-        e.preventDefault();
-        const token = localStorage.getItem("token");
-        const response = await fetch(`http://localhost:3000/connect/users?search=${searchedUser}`, {
-        method: "GET", 
-        headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-        const data = await response.json();
-        setUsers(data);
-    }
-    async function createConversation(participantId) {
-        const token = localStorage.getItem("token");
-        const response = await fetch(`http://localhost:3000/connect/conversations/create`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                memberId: participantId,
-                isGroup: isGroup
-            })
-        });
-        const data = await response.json();
-        navigate(`/conversations/${data.id}`);
-    } 
-function toggleUser(user) {
-    const alreadySelected = selectedUsers.some(
-        selectedUser => selectedUser.id === user.id
-    );
 
-    if (alreadySelected) {
-        setSelectedUsers(
-            selectedUsers.filter(
-                selectedUser => selectedUser.id !== user.id
-            )
-        );
-    } else {
-        setSelectedUsers([
-            ...selectedUsers,
-            user
-        ]);
+    function changeType(group) {
+        setIsGroup(group);
+        if (!group) {
+            setSelectedUsers([]);
+            setGroupName("");
+        }
     }
-};
+
+    async function searchUsers(e) {
+        e.preventDefault();
+        const query = searchedUser.trim();
+        setSearching(true);
+        try {
+            const data = await api(`/connect/users?search=${encodeURIComponent(query)}`);
+            setUsers(Array.isArray(data) ? data : []);
+            setSearchedFor(query);
+        } catch (error) {
+            console.error("Error searching users:", error);
+        } finally {
+            setSearching(false);
+        }
+    }
+
+    async function createConversation(participantId) {
+        if (creating) return;
+        setCreating(true);
+        try {
+            const data = await api("/connect/conversations/create", {
+                method: "POST",
+                body: JSON.stringify({ memberId: participantId, isGroup })
+            });
+            navigate(`/conversations/${data.id}`);
+        } catch (error) {
+            console.error("Error creating conversation:", error);
+            setCreating(false);
+        }
+    }
+
+    function isSelected(user) {
+        return selectedUsers.some(u => u.id === user.id);
+    }
+
+    function toggleUser(user) {
+        setSelectedUsers(prev =>
+            prev.some(u => u.id === user.id)
+                ? prev.filter(u => u.id !== user.id)
+                : [...prev, user]
+        );
+    }
 
     async function createGroup() {
-        const token = localStorage.getItem("token");
-        const memberIds = selectedUsers.map(user => user.id);
-        const response = await fetch (`http://localhost:3000/connect/conversations/create`,{
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                groupName: groupName,
-                memberIds: memberIds,
-                isGroup: isGroup
-            })
-        }); 
-        const data = await response.json();
-        navigate(`/conversations/${data.id}`);
+        if (creating) return;
+        setCreating(true);
+        try {
+            const data = await api("/connect/conversations/create", {
+                method: "POST",
+                body: JSON.stringify({
+                    groupName,
+                    memberIds: selectedUsers.map(user => user.id),
+                    isGroup
+                })
+            });
+            navigate(`/conversations/${data.id}`);
+        } catch (error) {
+            console.error("Error creating group:", error);
+            setCreating(false);
+        }
     }
+
+    function handleRowClick(user) {
+        if (isGroup) {
+            toggleUser(user);
+        } else {
+            createConversation(user.id);
+        }
+    }
+
     return (
         <div className={styles.page}>
             <button className={styles.backButton} onClick={() => navigate(-1)}>
-    ← Back
-</button>
-        <h1 className={styles.header}>Create a new chat</h1>
-        
-        <form className={styles.form} onSubmit={addUser}>
-            <label className={styles.choose} htmlFor="conver">Choose the type of the conversation</label>
-            <div className={styles.type}>
-            <label htmlFor="direct" className={styles.label}>DM</label>
-            <input type="radio" name="conver" id="direct" value="direct" onChange={() => setIsGroup(false)}/>
-            
-            <input type="radio" name="conver" value="group" id="group" onChange={() => setIsGroup(true)} className={styles.separator}/>
-            <label htmlFor="group" className={styles.label}>Group</label>
+                ← Back
+            </button>
+
+            <h1 className={styles.header}>Create a new chat</h1>
+            <p className={styles.subtitle}>
+                {isGroup
+                    ? "Search for people, tap to add them, then name your group."
+                    : "Search for someone and tap them to start chatting."}
+            </p>
+
+            <div className={styles.card}>
+                <div className={styles.toggle} role="radiogroup" aria-label="Conversation type">
+                    <span
+                        className={styles.thumb}
+                        style={{ transform: isGroup ? "translateX(100%)" : "translateX(0)" }}
+                    />
+                    <button
+                        type="button"
+                        role="radio"
+                        aria-checked={!isGroup}
+                        className={!isGroup ? `${styles.toggleBtn} ${styles.toggleActive}` : styles.toggleBtn}
+                        onClick={() => changeType(false)}
+                    >
+                        💬 Direct message
+                    </button>
+                    <button
+                        type="button"
+                        role="radio"
+                        aria-checked={isGroup}
+                        className={isGroup ? `${styles.toggleBtn} ${styles.toggleActive}` : styles.toggleBtn}
+                        onClick={() => changeType(true)}
+                    >
+                        👥 Group
+                    </button>
+                </div>
+
+                <form className={styles.searchForm} onSubmit={searchUsers}>
+                    <input
+                        type="text"
+                        className={styles.input}
+                        placeholder="Search by name or username"
+                        value={searchedUser}
+                        onChange={(e) => setSearchedUser(e.target.value)}
+                    />
+                    <button type="submit" className={styles.primaryButton} disabled={searching}>
+                        {searching ? "Searching..." : "Search"}
+                    </button>
+                </form>
             </div>
-            <label htmlFor="username" className={styles.tut}>Enter the user of the participants</label>
-            <input type="text" id="username" onChange={(e) => setSearchedUser(e.target.value)}/>
-            <button type="submit">Submit</button>
-        </form>
-        <h2>Selected Users</h2>
 
-{selectedUsers.map(user => (
-    <button
-        key={user.id}
-        onClick={() => toggleUser(user)}
-        className={styles.selectedChip}
-    >
-        {user.name} ✕
-    </button>
-))}
-  {isGroup && selectedUsers.length > 0 && (
-    <>
-        <label>Group Name</label>
-        <input
-            value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
-        />
+            {isGroup && selectedUsers.length > 0 && (
+                <div className={styles.card}>
+                    <h2 className={styles.sectionTitle}>Selected ({selectedUsers.length})</h2>
+                    <div className={styles.chips}>
+                        {selectedUsers.map(user => (
+                            <button
+                                type="button"
+                                key={user.id}
+                                onClick={() => toggleUser(user)}
+                                className={styles.selectedChip}
+                            >
+                                {user.name} ✕
+                            </button>
+                        ))}
+                    </div>
 
-        <button onClick={createGroup}
-        disabled={!groupName.trim()}>
-            Create Group
-        </button>
-    </>
-)}
-       {users.map((user) => (
-  <div
-    key={user.id}
-    className={styles.userRow}
-    onClick={() => {
-      if (isGroup) {
-        toggleUser(user);
-      } else {
-        createConversation(user.id);
-      };
-    }}
-  >
-    <h3>{user.name}</h3>
-    <p>@{user.username}</p>
-  </div>
-))}
+                    <div className={styles.groupRow}>
+                        <input
+                            className={styles.input}
+                            placeholder="Group name"
+                            value={groupName}
+                            onChange={(e) => setGroupName(e.target.value)}
+                        />
+                        <button
+                            type="button"
+                            className={styles.primaryButton}
+                            onClick={createGroup}
+                            disabled={!groupName.trim() || creating}
+                        >
+                            {creating ? "Creating..." : "Create group"}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            <div className={styles.results}>
+                {searchedFor !== null && users.length === 0 && (
+                    <div className={styles.empty}>
+                        <span className={styles.emptyIcon}>🔍</span>
+                        <p>No users found.</p>
+                    </div>
+                )}
+
+                {users.map((user, index) => {
+                    const selected = isGroup && isSelected(user);
+                    return (
+                        <div
+                            key={user.id}
+                            role="button"
+                            tabIndex={0}
+                            className={selected ? `${styles.userRow} ${styles.selected}` : styles.userRow}
+                            style={{ "--i": index }}
+                            onClick={() => handleRowClick(user)}
+                            onKeyDown={(e) => e.key === "Enter" && handleRowClick(user)}
+                        >
+                            <div className={styles.avatar}>{getInitial(user.name)}</div>
+                            <div className={styles.userText}>
+                                <h3>{user.name}</h3>
+                                <p>@{user.username}</p>
+                            </div>
+                            {isGroup && <span className={styles.check}>{selected ? "✓" : "+"}</span>}
+                        </div>
+                    );
+                })}
+            </div>
         </div>
-    )
-
+    );
 }
+
 export default NewChat;

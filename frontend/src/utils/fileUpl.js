@@ -1,9 +1,11 @@
+import { API_URL } from "./api";
+
 async function uploadFile(file) {
     const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append("image", file);
 
-    const response = await fetch("http://localhost:3000/connect/upload", {
+    const response = await fetch(`${API_URL}/connect/upload`, {
         method: "POST",
         headers: {
             Authorization: `Bearer ${token}`

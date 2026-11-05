@@ -1,21 +1,24 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 import { useState } from "react";
 import styles from "./login.module.css";
-import logo from "../assets/Wink.png"
+import logo from "../assets/Wink.png";
+import { API_URL } from "../utils/api";
+import { isTokenValid } from "../utils/auth.js";
 
 function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [verified, setVerified] = useState(false);
+  const verified = isTokenValid();
+
    if (verified) {
-    navigate("/conversations")
+    return <Navigate to="/feed" replace />;
   }
     async function handleSubmit(e) {
         e.preventDefault();
         setLoading(true)
         const formData = new FormData(e.target);
-        const response = await fetch("http://localhost:3000/auth/login", {
+        const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
         "Content-Type": "application/json",
@@ -25,39 +28,30 @@ function Login() {
         password: formData.get("password"),
     }),
 });
-        console.log(response.status);
+      console.log(response.status);
 
-        const data = await response.json();
-        console.log(data);
-        setMessage(data.message)
-       if (!response.ok) {
+      const data = await response.json();
+      setMessage(data.message)
+      if (!response.ok) {
        setLoading(false);
        return;
       }
-        localStorage.setItem("token", data.token);
-        const token = localStorage.getItem("token");
+      localStorage.setItem("token", data.token);
+      const token = localStorage.getItem("token");
 
-        console.log(token);
-       const meResponse = await fetch("http://localhost:3000/auth/me", {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-        const me = await meResponse.json();
-        console.log(me);
-        localStorage.setItem("userId", me.id);
-        setLoading(false)
-        if (me.verified) {
-          setVerified(true)
-          navigate("/conversations")
-        };
-        if (!me.verified) {
-          setVerified(false)
-        }
-    };
+      const meResponse = await fetch(`${API_URL}/auth/me`, {
+          headers: {
+               Authorization: `Bearer ${token}`
+          }
+       });
+      const me = await meResponse.json();
+      localStorage.setItem("userId", me.id);
+      setLoading(false)
+      navigate("/feed")
+};
     async function handleGuestLogin() {
     setLoading(true);
-    const response = await fetch("http://localhost:3000/auth/guest", {
+    const response = await fetch(`${API_URL}/auth/guest`, {
         method: "POST"
     });
     const data = await response.json();
@@ -71,7 +65,7 @@ function Login() {
     localStorage.setItem("token", data.token);
     const token = localStorage.getItem("token");
 
-    const meResponse = await fetch("http://localhost:3000/auth/me", {
+    const meResponse = await fetch(`${API_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
     });
     const me = await meResponse.json();
@@ -82,11 +76,15 @@ function Login() {
 }
     return (
  
-      <div className={styles.page}>
-      <h1 className={styles.welcome}>Welcome to <img src={logo} alt="Wink" className={styles.logo}/></h1>
-      <h1 className={styles.login}>Login to your account</h1>
-      <div >
-      <form onSubmit={handleSubmit} className={styles.form}>
+<div className={styles.page}>
+   <header className={styles.header}>
+     <h1 className={styles.welcome}>
+        Welcome to <img src={logo} alt="Wink" className={styles.logo} />
+     </h1>
+     <p className={styles.login}>Login to your account</p>
+  </header>
+  <div>
+    <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.name}>
         <input type="text" name="user" className={styles.input} required/>
         <label htmlFor="user" className={styles.label}>Enter your user *</label>
@@ -104,7 +102,7 @@ function Login() {
     Continue as guest
 </button>
      </div>
-           <Link to="/signup" className={styles.link}>
+      <Link to="/signup" className={styles.link}>
         Don't have an account? Sign up
       </Link>
       </form>
