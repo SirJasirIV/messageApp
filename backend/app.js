@@ -9,6 +9,7 @@ import cleanupGuests from "./controllers/cleanUpGuest.js";
 
 const app = express();
 app.set("etag", false);
+app.set("trust proxy", 1);
 
 const HOUR = 60 * 60 * 1000;
 setInterval(cleanupGuests, HOUR);
@@ -16,7 +17,7 @@ cleanupGuests();
 
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
+app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(express.json({ limit: "100kb" }));
 
 const authLimiter = rateLimit({
@@ -29,6 +30,8 @@ const authLimiter = rateLimit({
 app.get("/", (req, res) => {
   res.send("working!");
 });
+
+app.get("/health", (req, res) => res.send("ok"));
 
 app.use("/auth", authLimiter, router);
 app.use("/connect", indexRouter);

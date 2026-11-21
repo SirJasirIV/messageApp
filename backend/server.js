@@ -8,7 +8,7 @@ import "dotenv/config";
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: { origin: process.env.CLIENT_URL || "http://localhost:5173", credentials: true },
+  cors: { origin: process.env.CLIENT_URL, credentials: true },
 });
 
 io.use((socket, next) => {
@@ -28,4 +28,5 @@ io.use((socket, next) => {
 
 app.set("io", io); 
 
-server.listen(3000, () => console.log("Listening on 3000"));
+const PORT = process.env.PORT || 3000;
+server.listen(PORT);
